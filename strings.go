@@ -7,7 +7,7 @@ import (
 /* Magic and garbage */
 
 func (t Token) String() string {
-	return "{" + fmt.Sprint(t.Vtype) + ", " + t.name + "}"
+	return fmt.Sprintf(`{%v, %v}`, t.Vtype, t.name)
 }
 
 func (vt Vtype) String() string {

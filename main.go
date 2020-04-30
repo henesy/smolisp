@@ -7,7 +7,6 @@ import (
 	"os"
 	"io"
 	"math"
-	"strings"
 	"errors"
 )
 
@@ -36,7 +35,7 @@ type Token struct {
 // Represents a known symbol
 type Symbol struct {
 	Vtype
-	Value	interface{}		// Assertion determined by .Type
+	Contents	interface{}		// Assertion determined by .Type
 }
 
 var (
@@ -45,6 +44,29 @@ var (
 	ast		*Tree
 )
 
+
+// Convert a token into a full symbol
+func token2symbol(token Token) (Symbol, error) {
+	var symbol Symbol
+
+	// Check if this is a known symbol
+	symbol, ok := symbols[token.name]
+	if !ok {
+		// Unknown symbol, so we build it
+		symbol.Vtype = token.Vtype
+
+		// Determine what the value of the symbol is
+		value, err := findvalue(token)
+
+		if err != nil {
+			return symbol, err
+		}
+
+		symbol.Contents = value
+	}
+
+	return symbol, nil
+}
 
 // Parse a list of tokens into an AST
 func parse(ts TokenScanner) (*Tree, error) {
@@ -56,18 +78,75 @@ func parse(ts TokenScanner) (*Tree, error) {
 		// TODO - validate the procedure token type, etc.
 		symtok := ts.next()
 
-		// Check if this is a known symbol
-		symbol, ok := symbols[symtok.name]
-		if !ok {
-			symbol.Vtype = symtok.Vtype
-
-			// Determine what the value of the symbol is
-			;
+		if symtok.Vtype == NIL {
+			return nil, errors.New(fmt.Sprintf(`unexpected end of token stream at beginning of expression after token ""`, ts.previous().name))
 		}
 
-		tree = &Tree{symbol, make([]*Tree, 0, maxChildren)}
+		fmt.Println("symtok =", symtok)
+
+		symbol, err := token2symbol(symtok)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Println("Symbol value →", symbol.Contents)
+
+		tree = NewTree(symbol)
+
+		// Recursive descent?
+		for {
+			token := ts.next()
+
+			// End of token stream
+			if token.Vtype == NIL {
+				// TODO - just return?
+				break
+			}
+
+			// End of expression means nothing more to consume
+			// TODO - put at end of block?
+			if token.Vtype == End {
+				return tree, nil
+			}
+
+			// Find out what symbol we have
+			symbol, err := token2symbol(token)
+			if err != nil {
+				return nil, err
+			}
+
+
+			switch symbol.Vtype {
+			case Begin:
+				fmt.Println("→ symbol descended =", symbol)
+
+				// Recursively descend on new expression
+				subtree, err := parse(ts)
+				if err != nil {
+					return nil, err
+				}
+
+				tree.Children = append(tree.Children, subtree)
+
+			default:
+				// Ordinary symbols don't require
+				fmt.Println("→ symbol appended =", symbol)
+
+				tree.Children = append(tree.Children, NewTree(symbol))
+			}
+
+
+
+
+		}
+
 
 	case End:
+		// TODO - wrong?
+		return nil, errors.New(fmt.Sprintf(`"unexpected end of expression after "%v"`, ts.previous()))
+
+	default:
+		return nil, errors.New(fmt.Sprintf(`could not parse for AST, unknown token type "%v"`, token.Vtype))
 
 	}
 
@@ -122,7 +201,7 @@ func main() {
 
 		ast, err := parse(ts)
 
-		if err != nil {
+		if err != nil || ast == nil {
 			fmt.Println("err: could not parse -", err)
 			continue repl
 		}
@@ -138,79 +217,3 @@ func main() {
 }
 
 
-// Tokenize text into a list of tokens
-func tokenize(text string) ([]Token, error) {
-	// So we can split on whitespace, TODO - be better, maybe use strings.FieldsFunc() ?
-	text = strings.ReplaceAll(text, "(", " ( ")
-	text = strings.ReplaceAll(text, ")", " ) ")
-
-	words := strings.Fields(text)
-	tokens := make([]Token, 0, len(words))
-
-	// Determine the virtual type for each token
-	for i, word := range words {
-		token := Token {
-			name: word,
-		}
-
-		switch {
-		case word == "(":
-			token.Vtype = Begin
-
-		case word == ")":
-			token.Vtype = End
-
-		// TODO - case out Floating and negatives
-		case word[0] >= '0' && word[0] <= '9':
-			token.Vtype = Integral
-
-		default:
-			if i == 0 {
-				return nil, errors.New(`first rune must be "(", got "` + word + `"`)
-			}
-
-			if tokens[i-1].Vtype == Begin {
-				token.Vtype = Procedure
-			} else {
-				token.Vtype = Value
-			}
-		}
-
-		tokens = append(tokens, token)
-	}
-
-	return tokens, nil
-}
-
-
-/* For scanning across tokens */
-type TokenScanner struct {
-	tokens	[]Token
-	i		int
-}
-
-func NewTokenScanner(tokens []Token) TokenScanner {
-	return TokenScanner {
-		tokens: tokens,
-		i:		0,
-	}
-}
-
-func (ts TokenScanner) next() Token {
-	if ts.i >= len(ts.tokens) {
-		return Token{NIL, "<nil>"}
-	}
-
-	// Hack
-	defer func() { ts.i++ }()
-
-	return ts.tokens[ts.i]
-}
-
-func (ts TokenScanner) previous() Token {
-	if ts.i <= 0 {
-		return ts.tokens[0]
-	}
-
-	return ts.tokens[ts.i-1]
-}

@@ -18,3 +18,7 @@ type Tree struct {
 	Children	[]*Tree
 }
 
+// Create a new, single-node tree
+func NewTree(symbol Symbol) *Tree {
+	return &Tree{symbol, make([]*Tree, 0, maxChildren)}
+}

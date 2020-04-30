@@ -11,7 +11,7 @@ func procAdd(symbols ...Symbol) (Symbol, error) {
 	}
 
 	if symbols[0].Vtype == Integral && symbols[1].Vtype == Integral {
-		return Symbol{Integral, symbols[0].Value.(int) + symbols[1].Value.(int)}, nil
+		return Symbol{Integral, symbols[0].Contents.(int) + symbols[1].Contents.(int)}, nil
 	}
 
 	return Symbol{}, errors.New("arguments must be numeric types {Integral, }")
@@ -24,7 +24,7 @@ func procSub(symbols ...Symbol) (Symbol, error) {
 	}
 
 	if symbols[0].Vtype == Integral && symbols[1].Vtype == Integral {
-		return Symbol{Integral, symbols[0].Value.(int) - symbols[1].Value.(int)}, nil
+		return Symbol{Integral, symbols[0].Contents.(int) - symbols[1].Contents.(int)}, nil
 	}
 
 	return Symbol{}, errors.New("arguments must be numeric types {Integral, }")
