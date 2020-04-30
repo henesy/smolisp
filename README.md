@@ -8,9 +8,12 @@ A toy lisp-like language implementation.
 
 ## Usage
 
-
+EOF exits the repl.
 
 ## Examples
 
+	./smolisp
+	» (+ 2 3)
+	…
 
 

@@ -216,6 +216,8 @@ func main() {
 		/* Output */
 		;
 	}
+
+	fmt.Println("\nGoodbye ☺")
 }
 
 
