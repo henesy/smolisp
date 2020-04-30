@@ -12,12 +12,19 @@ func (t Token) String() string {
 
 func (vt Vtype) String() string {
 	switch vt {
-	case Integral:	return "Integral"
-	case Floating:	return "Floating"
-	case Procedure:	return "Procedure"
-	case Begin:		return "Begin"
-	case End:		return "End"
-	case Value:		return "Value"
-	default:		return "UNKNOWN TYPE"
+	case Integral:
+		return "Integral"
+	case Floating:
+		return "Floating"
+	case Procedure:
+		return "Procedure"
+	case Begin:
+		return "Begin"
+	case End:
+		return "End"
+	case Value:
+		return "Value"
+	default:
+		return "UNKNOWN TYPE"
 	}
 }

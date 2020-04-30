@@ -1,10 +1,10 @@
 package main
 
 import (
-	"strings"
-	"strconv"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 /* For tokenizing, etc. */
@@ -20,7 +20,7 @@ func tokenize(text string) ([]Token, error) {
 
 	// Determine the virtual type for each token
 	for i, word := range words {
-		token := Token {
+		token := Token{
 			name: word,
 		}
 
@@ -53,17 +53,39 @@ func tokenize(text string) ([]Token, error) {
 	return tokens, nil
 }
 
+// Convert a token into a full symbol
+func token2symbol(token Token) (Symbol, error) {
+	var symbol Symbol
+
+	// Check if this is a known symbol
+	symbol, ok := symbols[token.name]
+	if !ok {
+		// Unknown symbol, so we build it
+		symbol.Vtype = token.Vtype
+
+		// Determine what the value of the symbol is
+		value, err := findvalue(token)
+
+		if err != nil {
+			return symbol, err
+		}
+
+		symbol.Contents = value
+	}
+
+	return symbol, nil
+}
 
 /* For scanning across tokens */
 type TokenScanner struct {
-	tokens	[]Token
-	i		int
+	tokens []Token
+	i      int
 }
 
 func NewTokenScanner(tokens []Token) TokenScanner {
-	return TokenScanner {
+	return TokenScanner{
 		tokens: tokens,
-		i:		0,
+		i:      0,
 	}
 }
 
@@ -101,8 +123,6 @@ func (ts *TokenScanner) rewind() Token {
 
 // Look up and build value of a given token
 func findvalue(token Token) (interface{}, error) {
-	var value interface{}
-
 	// TODO - more types
 	switch token.Vtype {
 	case Integral:
@@ -128,5 +148,6 @@ func findvalue(token Token) (interface{}, error) {
 		return nil, errors.New(fmt.Sprintf(`unknown type, cannot determine value of "%v"`, token.Vtype))
 	}
 
-	return value, nil
+	// Unreachable
+
 }
