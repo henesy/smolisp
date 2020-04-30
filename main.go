@@ -110,13 +110,13 @@ func parse(ts TokenScanner) (*Tree, error) {
 				return tree, nil
 			}
 
+			/* TODO - feels wrong to remove this
 			// Find out what symbol we have
 			symbol, err := token2symbol(token)
 			if err != nil {
 				return nil, err
 			}
-
-			fmt.Println("→ symbol descended =", symbol)
+			*/
 
 			// Recursively descend on new expression
 			subtree, err := parse(ts)
@@ -126,7 +126,6 @@ func parse(ts TokenScanner) (*Tree, error) {
 
 			// TODO - more?
 			if subtree != nil {
-				fmt.Println("→ tree appended =", *subtree)
 				tree.Children = append(tree.Children, subtree)
 			}
 		}
@@ -197,7 +196,7 @@ func main() {
 			continue repl
 		}
 
-		fmt.Println(tokens)
+		fmt.Println("TOKENS =", tokens)
 
 		/* Parsing */
 		ts := NewTokenScanner(tokens)
@@ -209,7 +208,7 @@ func main() {
 			continue repl
 		}
 
-		fmt.Println(*ast)
+		fmt.Println("AST =", *ast)
 
 		/* Evaluate */
 		;
