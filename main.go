@@ -115,38 +115,40 @@ func parse(ts TokenScanner) (*Tree, error) {
 				return nil, err
 			}
 
+			fmt.Println("→ symbol descended =", symbol)
 
-			switch symbol.Vtype {
-			case Begin:
-				fmt.Println("→ symbol descended =", symbol)
-
-				// Recursively descend on new expression
-				subtree, err := parse(ts)
-				if err != nil {
-					return nil, err
-				}
-
-				tree.Children = append(tree.Children, subtree)
-
-			default:
-				// Ordinary symbols don't require
-				fmt.Println("→ symbol appended =", symbol)
-
-				tree.Children = append(tree.Children, NewTree(symbol))
+			// Recursively descend on new expression
+			subtree, err := parse(ts)
+			if err != nil {
+				return nil, err
 			}
 
-
-
-
+			// TODO - more?
+			if subtree != nil {
+				fmt.Println("→ tree appended =", *subtree)
+				tree.Children = append(tree.Children, subtree)
+			}
 		}
 
 
 	case End:
 		// TODO - wrong?
-		return nil, errors.New(fmt.Sprintf(`"unexpected end of expression after "%v"`, ts.previous()))
+		return nil, nil
+		//return nil, errors.New(fmt.Sprintf(`"unexpected end of expression after "%v"`, ts.previous()))
 
 	default:
-		return nil, errors.New(fmt.Sprintf(`could not parse for AST, unknown token type "%v"`, token.Vtype))
+		// TODO - use this rather than just pushing it through?
+		//return nil, errors.New(fmt.Sprintf(`could not parse for AST, unknown token type "%v"`, token.Vtype))
+
+		// If we get something that isn't for expression control, return just that symbol as a mono-tree?
+		symbol, err := token2symbol(token)
+		if err != nil {
+			return nil, err
+		}
+
+		subtree := NewTree(symbol)
+
+		return subtree, nil
 
 	}
 
