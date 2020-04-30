@@ -73,6 +73,8 @@ func parse(ts TokenScanner) (*Tree, error) {
 	token := ts.next()
 	var tree *Tree
 
+	fmt.Println("» parsing token =", token)
+
 	switch token.Vtype {
 	case Begin:
 		// TODO - validate the procedure token type, etc.
@@ -82,14 +84,10 @@ func parse(ts TokenScanner) (*Tree, error) {
 			return nil, errors.New(fmt.Sprintf(`unexpected end of token stream at beginning of expression after token ""`, ts.previous().name))
 		}
 
-		fmt.Println("symtok =", symtok)
-
 		symbol, err := token2symbol(symtok)
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Println("Symbol value →", symbol.Contents)
 
 		tree = NewTree(symbol)
 
