@@ -91,6 +91,9 @@ func parse(ts TokenScanner) (*Tree, error) {
 
 		tree = NewTree(symbol)
 
+		// TODO - this hack works, does this mean the logic is flawed?
+		ts.rewind()
+
 		// Recursive descent?
 		for {
 			token := ts.next()

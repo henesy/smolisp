@@ -67,23 +67,36 @@ func NewTokenScanner(tokens []Token) TokenScanner {
 	}
 }
 
+// Return current token, then shift forwards
 func (ts *TokenScanner) next() Token {
 	if ts.i >= len(ts.tokens) {
 		return Token{NIL, "<nil>"}
 	}
 
-	// Hack
+	// Hack due to lack of ++i
 	defer func() { ts.i++ }()
 
 	return ts.tokens[ts.i]
 }
 
+// Get the last token read, no shifting is done
 func (ts *TokenScanner) previous() Token {
 	if ts.i <= 0 {
 		return ts.tokens[0]
 	}
 
 	return ts.tokens[ts.i-1]
+}
+
+// Shift back 1 token and return it
+func (ts *TokenScanner) rewind() Token {
+	if ts.i <= 0 {
+		return ts.tokens[0]
+	}
+
+	ts.i--
+
+	return ts.tokens[ts.i]
 }
 
 // Look up and build value of a given token
