@@ -12,9 +12,10 @@ EOF exits the repl.
 
 ## Examples
 
-	./smolisp
+	$ ./smolisp 
 	» (+ 2 3)
-	…
+	5
+	» 
 
 ## Specification
 
