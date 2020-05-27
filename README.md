@@ -16,4 +16,18 @@ EOF exits the repl.
 	» (+ 2 3)
 	…
 
+## Specification
 
+The syntax is as per S-expression where the form is:
+
+	(procedureName argA argB ...)
+
+The implemented procedures:
+
+	+
+	-
+
+The implemented keywords:
+
+	π
+	billion
