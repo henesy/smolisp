@@ -14,10 +14,10 @@ const (
 )
 
 // Represents the inner type of a name
-type Vtype int
+type Kind int
 
 const (
-	Integral  Vtype = iota // (+ »2« »3«)
+	Integral  Kind = iota  // (+ »2« »3«)
 	Floating               // (pow »3.14« 2)
 	Procedure              // (»foo« a b)
 	Begin                  // »(«foo a b)
@@ -28,13 +28,13 @@ const (
 
 // Represents a lexed token
 type Token struct {
-	Vtype
+	Kind
 	name string
 }
 
 // Represents a known symbol
 type Symbol struct {
-	Vtype
+	Kind
 	Contents interface{} // Assertion determined by .Type
 }
 
@@ -99,8 +99,16 @@ repl:
 		fmt.Println("AST =", *ast)
 
 		/* Evaluate */
+		
+		final, err := ast.Eval(ast)
+		
+		if err != nil {
+			fmt.Println("err: could not eval the AST -", err)
+		}
 
 		/* Output */
+		
+		fmt.Println(final.Symbol)
 
 	}
 

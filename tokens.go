@@ -26,24 +26,24 @@ func tokenize(text string) ([]Token, error) {
 
 		switch {
 		case word == "(":
-			token.Vtype = Begin
+			token.Kind = Begin
 
 		case word == ")":
-			token.Vtype = End
+			token.Kind = End
 
 		// TODO - case out Floating and negatives
 		case word[0] >= '0' && word[0] <= '9':
-			token.Vtype = Integral
+			token.Kind = Integral
 
 		default:
 			if i == 0 {
 				return nil, errors.New(`first rune must be "(", got "` + word + `"`)
 			}
 
-			if tokens[i-1].Vtype == Begin {
-				token.Vtype = Procedure
+			if tokens[i-1].Kind == Begin {
+				token.Kind = Procedure
 			} else {
-				token.Vtype = Value
+				token.Kind = Value
 			}
 		}
 
@@ -61,7 +61,7 @@ func token2symbol(token Token) (Symbol, error) {
 	symbol, ok := symbols[token.name]
 	if !ok {
 		// Unknown symbol, so we build it
-		symbol.Vtype = token.Vtype
+		symbol.Kind = token.Kind
 
 		// Determine what the value of the symbol is
 		value, err := findvalue(token)
@@ -124,7 +124,7 @@ func (ts *TokenScanner) rewind() Token {
 // Look up and build value of a given token
 func findvalue(token Token) (interface{}, error) {
 	// TODO - more types
-	switch token.Vtype {
+	switch token.Kind {
 	case Integral:
 		n, err := strconv.Atoi(token.name)
 		if err != nil {
@@ -145,7 +145,7 @@ func findvalue(token Token) (interface{}, error) {
 		}
 
 	default:
-		return nil, errors.New(fmt.Sprintf(`unknown type, cannot determine value of "%v"`, token.Vtype))
+		return nil, errors.New(fmt.Sprintf(`unknown type, cannot determine value of "%v"`, token.Kind))
 	}
 
 	// Unreachable
