@@ -82,8 +82,8 @@ type TokenScanner struct {
 	i      int
 }
 
-func NewTokenScanner(tokens []Token) TokenScanner {
-	return TokenScanner{
+func NewTokenScanner(tokens []Token) *TokenScanner {
+	return &TokenScanner{
 		tokens: tokens,
 		i:      0,
 	}

@@ -36,7 +36,7 @@ type Tree struct {
 }
 
 // Parse a list of tokens into an AST
-func parse(ts TokenScanner) (*Tree, error) {
+func parse(ts *TokenScanner) (*Tree, error) {
 	token := ts.next()
 	var tree *Tree
 
@@ -61,23 +61,40 @@ func parse(ts TokenScanner) (*Tree, error) {
 		tree, _ = NewTree(symbol)
 
 		// TODO - this hack works, does this mean the logic is flawed?
-		ts.rewind()
+		//ts.rewind()
 
 		// Recursive descent?
+		loop:
 		for {
 			token := ts.next()
 
-			// End of token stream
-			if token.Kind == NIL {
+			fmt.Println("» next token =", token)
+
+			switch token.Kind {
+			case NIL:
+				// End of token stream
 				// TODO - just return?
-				break
+				break loop
+
+			case End:
+				// End of expression means nothing more to consume
+				// TODO - put at end of block?
+				return tree, nil
+
+			case Begin:
+				// Beginning of new expression
+				subtree, err := parse(ts)
+				if err != nil {
+					return nil, err
+				}
+
+
+				// TODO - more?
+				if subtree != nil {
+					tree.Children = append(tree.Children, subtree)
+				}
 			}
 
-			// End of expression means nothing more to consume
-			// TODO - put at end of block?
-			if token.Kind == End {
-				return tree, nil
-			}
 
 			// Recursively descend on new expression
 			subtree, err := parse(ts)
