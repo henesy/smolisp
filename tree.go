@@ -35,6 +35,23 @@ type Tree struct {
 	Eval		func(*Tree)(*Tree, error)
 }
 
+
+// Get number of nodes in a tree
+func (t Tree) Length() int {
+	if t.Symbol.Kind == NIL {
+		return 0
+	}
+
+	count := 1
+	for _, child := range t.Children {
+		if child != nil {
+			count += child.Length()
+		}
+	}
+
+	return count
+}
+
 // Parse a list of tokens into an AST
 func parse(ts *TokenScanner) (*Tree, error) {
 	token := ts.next()
@@ -93,6 +110,8 @@ func parse(ts *TokenScanner) (*Tree, error) {
 				if subtree != nil {
 					tree.Children = append(tree.Children, subtree)
 				}
+
+				fmt.Println("»» Nested Begin length = ", tree.Length())
 			}
 
 
@@ -106,6 +125,8 @@ func parse(ts *TokenScanner) (*Tree, error) {
 			if subtree != nil {
 				tree.Children = append(tree.Children, subtree)
 			}
+
+			fmt.Println("»» Top Begin length = ", tree.Length())
 		}
 
 	case End:
@@ -124,6 +145,8 @@ func parse(ts *TokenScanner) (*Tree, error) {
 		}
 
 		subtree, _ := NewTree(symbol)
+
+
 
 		return subtree, nil
 

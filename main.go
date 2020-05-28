@@ -104,6 +104,7 @@ repl:
 
 		if err != nil {
 			fmt.Println("err: could not eval the AST -", err)
+			continue repl
 		}
 
 		/* Output */
