@@ -22,9 +22,9 @@ A necessarily many to one function:
 	+
 2		3
 
-The `+` node fans in 3→1 by consuming its children as arguments as well as itself returning its evaluated self as a single-node tree. 
+The `+` node fans in 3→1 by consuming its children as arguments as well as itself returning its evaluated self as a single-node tree.
 
-The `2` node fans in, incidentally 1→1 as it consumes only itself and returns itself as a single-node tree. 
+The `2` node fans in, incidentally 1→1 as it consumes only itself and returns itself as a single-node tree.
 
 */
 
@@ -46,6 +46,8 @@ func parse(ts TokenScanner) (*Tree, error) {
 	case Begin:
 		// TODO - validate the procedure token type, etc.
 		symtok := ts.next()
+
+		fmt.Println("» parsing operator =", symtok)
 
 		if symtok.Kind == NIL {
 			return nil, errors.New(fmt.Sprintf(`unexpected end of token stream at beginning of expression after token "%v"`, ts.previous().name))
@@ -76,14 +78,6 @@ func parse(ts TokenScanner) (*Tree, error) {
 			if token.Kind == End {
 				return tree, nil
 			}
-
-			/* TODO - feels wrong to remove this
-			// Find out what symbol we have
-			symbol, err := token2symbol(token)
-			if err != nil {
-				return nil, err
-			}
-			*/
 
 			// Recursively descend on new expression
 			subtree, err := parse(ts)
@@ -127,7 +121,7 @@ func NewTree(symbol Symbol) (*Tree, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &Tree{symbol, make([]*Tree, 0, maxChildren), handler}, nil
 }
 
@@ -139,33 +133,33 @@ func getHandler(symbol Symbol) (func(*Tree)(*Tree, error), error) {
 		return func(tree *Tree) (*Tree, error) {
 				operation := symbol.Contents.(func(...Symbol) (Symbol, error))
 				childSyms := make([]Symbol, 0, len(tree.Children))
-				
+
 				for _, child := range tree.Children {
 					// Reduce the child tree to one result node
 					childTree, err := child.Eval(child)
 					if err != nil {
 						return nil, errors.New(fmt.Sprint("child eval failed - ", err))
 					}
-					
+
 					symbol := childTree.Symbol
-					
+
 					childSyms = append(childSyms, symbol)
 				}
-				
+
 				result, err := operation(childSyms ...)
-				
+
 				if err != nil {
 					return nil, errors.New(fmt.Sprint("procedure evaluation failed to consume children - ", err))
 				}
-				
+
 				return NewTree(result)
 			}, nil
-	
+
 	case Integral:
 		return func(tree *Tree) (*Tree, error) {
 				return NewTree(symbol)
 			}, nil
-	
+
 	default:
 		return func(tree *Tree) (*Tree, error) {
 				return NewTree(Symbol{Kind: NIL})

@@ -96,18 +96,18 @@ repl:
 			continue repl
 		}
 
-		fmt.Println("AST =", *ast)
+		fmt.Println("AST root =", *ast)
 
 		/* Evaluate */
-		
+
 		final, err := ast.Eval(ast)
-		
+
 		if err != nil {
 			fmt.Println("err: could not eval the AST -", err)
 		}
 
 		/* Output */
-		
+
 		fmt.Println(final.Symbol)
 
 	}
