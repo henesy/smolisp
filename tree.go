@@ -62,15 +62,15 @@ func parse(ts *TokenScanner) (*Tree, error) {
 	switch token.Kind {
 	case Begin:
 		// TODO - validate the procedure token type, etc.
-		symtok := ts.next()
+		token = ts.next()
 
-		fmt.Println("» parsing operator =", symtok)
+		fmt.Println("» parsing operator =", token)
 
-		if symtok.Kind == NIL {
+		if token.Kind == NIL {
 			return nil, errors.New(fmt.Sprintf(`unexpected end of token stream at beginning of expression after token "%v"`, ts.previous().name))
 		}
 
-		symbol, err := token2symbol(symtok)
+		symbol, err := token2symbol(token)
 		if err != nil {
 			return nil, err
 		}
@@ -80,10 +80,10 @@ func parse(ts *TokenScanner) (*Tree, error) {
 		// TODO - this hack works, does this mean the logic is flawed?
 		//ts.rewind()
 
-		// Recursive descent?
+		// Recursive descent? for consuming children
 		loop:
 		for {
-			token := ts.next()
+			token = ts.next()
 
 			fmt.Println("» next token =", token)
 
@@ -114,6 +114,9 @@ func parse(ts *TokenScanner) (*Tree, error) {
 				fmt.Println("»» Nested Begin length = ", tree.Length())
 			}
 
+			thisSymbol, _ := token2symbol(token)
+			thisLeaf, _ := NewTree(thisSymbol)
+			tree.Children = append(tree.Children, thisLeaf)
 
 			// Recursively descend on new expression
 			subtree, err := parse(ts)
