@@ -89,6 +89,15 @@ func NewTokenScanner(tokens []Token) *TokenScanner {
 	}
 }
 
+// Does the TokenScanner have another token?
+func (ts *TokenScanner) hasNext() bool {
+	if ts.i >= len(ts.tokens) {
+		return false
+	}
+	
+	return true
+}
+
 // Return current token, then shift forwards
 func (ts *TokenScanner) next() Token {
 	if ts.i >= len(ts.tokens) {

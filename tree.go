@@ -28,6 +28,8 @@ The `2` node fans in, incidentally 1→1 as it consumes only itself and returns 
 
 */
 
+const dummyName = "dummy root"
+
 // The AST
 type Tree struct {
 	Symbol
@@ -37,7 +39,7 @@ type Tree struct {
 
 
 // Get number of nodes in a tree
-func (t Tree) Length() int {
+func (t Tree) Size() int {
 	if t.Symbol.Kind == NIL {
 		return 0
 	}
@@ -45,7 +47,7 @@ func (t Tree) Length() int {
 	count := 1
 	for _, child := range t.Children {
 		if child != nil {
-			count += child.Length()
+			count += child.Size()
 		}
 	}
 
@@ -54,112 +56,100 @@ func (t Tree) Length() int {
 
 // Parse a list of tokens into an AST
 func parse(ts *TokenScanner) (*Tree, error) {
-	token := ts.next()
 	var tree *Tree
+	
+	tree, _ = InitTree(Symbol{Dummy, dummyName})
+	
+	for ts.hasNext() {
+		token := ts.next()
 
-	fmt.Println("» parsing token =", token)
-
-	switch token.Kind {
-	case Begin:
-		// TODO - validate the procedure token type, etc.
-		token = ts.next()
-
-		fmt.Println("» parsing operator =", token)
-
-		if token.Kind == NIL {
-			return nil, errors.New(fmt.Sprintf(`unexpected end of token stream at beginning of expression after token "%v"`, ts.previous().name))
+		if chatty {
+			fmt.Println("» parsing token =", token)
 		}
 
-		symbol, err := token2symbol(token)
-		if err != nil {
-			return nil, err
-		}
-
-		tree, _ = NewTree(symbol)
-
-		// TODO - this hack works, does this mean the logic is flawed?
-		//ts.rewind()
-
-		// Recursive descent? for consuming children
-		loop:
-		for {
-			token = ts.next()
-
-			fmt.Println("» next token =", token)
-
-			switch token.Kind {
-			case NIL:
-				// End of token stream
-				// TODO - just return?
-				break loop
-
-			case End:
-				// End of expression means nothing more to consume
-				// TODO - put at end of block?
-				return tree, nil
-
-			case Begin:
-				// Beginning of new expression
-				subtree, err := parse(ts)
-				if err != nil {
-					return nil, err
-				}
-
-
-				// TODO - more?
-				if subtree != nil {
-					tree.Children = append(tree.Children, subtree)
-				}
-
-				fmt.Println("»» Nested Begin length = ", tree.Length())
-			}
-
-			thisSymbol, _ := token2symbol(token)
-			thisLeaf, _ := NewTree(thisSymbol)
-			tree.Children = append(tree.Children, thisLeaf)
-
-			// Recursively descend on new expression
-			subtree, err := parse(ts)
-			if err != nil {
-				return nil, err
-			}
-
-			// TODO - more?
-			if subtree != nil {
-				tree.Children = append(tree.Children, subtree)
-			}
-
-			fmt.Println("»» Top Begin length = ", tree.Length())
-		}
-
-	case End:
-		// TODO - wrong?
-		return nil, nil
-		//return nil, errors.New(fmt.Sprintf(`"unexpected end of expression after "%v"`, ts.previous()))
-
-	default:
-		// TODO - use this rather than just pushing it through?
-		//return nil, errors.New(fmt.Sprintf(`could not parse for AST, unknown token type "%v"`, token.Kind))
-
-		// If we get something that isn't for expression control, return just that symbol as a mono-tree?
-		symbol, err := token2symbol(token)
-		if err != nil {
-			return nil, err
-		}
-
-		subtree, _ := NewTree(symbol)
-
-
-
-		return subtree, nil
-
+		ingest(ts, tree, token)
 	}
-
+	
+	if len(tree.Children) <= 0 {
+		return nil, errors.New("no expression provided (tree's size is 0)")
+	}
+	
+	// Remove the dummy head
+	tree = tree.Children[0]
+	
 	return tree, nil
 }
 
-// Create a new, single-node tree
-func NewTree(symbol Symbol) (*Tree, error) {
+// Ingest a token into the tree
+func ingest(ts *TokenScanner, tree *Tree, token Token) error { 
+	if chatty {
+		fmt.Println("»» ingesting tree size =", tree.Size())
+		fmt.Println("»» ingesting token =", token)
+	}
+	
+	switch token.Kind {
+	case Begin:
+		// Shift down into the next child and forward a token
+		child := NewTree()
+		tree.Children = append(tree.Children, child)
+		ingest(ts, child, ts.next())
+		
+	case End:
+		// Propagate back up
+		return nil
+	
+	case Procedure:
+		// Take advantage of begin percolating down the tree, take over current node
+		symbol, err := token2symbol(token)
+		if err != nil {
+			return err
+		}
+		
+		tree.Symbol = symbol
+		tree.Eval, err = getHandler(symbol)
+		if err != nil {
+			return err
+		}
+		
+		// Ingest our children now
+		loop:
+		for {
+			token := ts.next()
+		
+			switch token.Kind {
+			case End:
+				break loop
+				
+			default:
+				ingest(ts, tree, token)
+			}
+		}
+		
+	case Integral:
+		// Insert ourselves as a child
+		symbol, err := token2symbol(token)
+		if err != nil {
+			return errors.New(fmt.Sprint("token→symbol failed - ", err))
+		}
+		
+		child, err := InitTree(symbol)
+		if err != nil {
+			return err
+		}
+
+		tree.Children = append(tree.Children, child)
+	}
+	
+	return nil
+}
+
+// Create a new tree containing nothing
+func NewTree() (*Tree) {
+	return &Tree{Symbol{NIL, "NewTree holder"}, make([]*Tree, 0, maxChildren), nil}
+}
+
+// Create a new tree from a Token
+func InitTree(symbol Symbol) (*Tree, error) {
 	handler, err := getHandler(symbol)
 	if err != nil {
 		return nil, err
@@ -195,17 +185,17 @@ func getHandler(symbol Symbol) (func(*Tree)(*Tree, error), error) {
 					return nil, errors.New(fmt.Sprint("procedure evaluation failed to consume children - ", err))
 				}
 
-				return NewTree(result)
+				return InitTree(result)
 			}, nil
 
 	case Integral:
 		return func(tree *Tree) (*Tree, error) {
-				return NewTree(symbol)
+				return InitTree(symbol)
 			}, nil
 
 	default:
 		return func(tree *Tree) (*Tree, error) {
-				return NewTree(Symbol{Kind: NIL})
+				return InitTree(Symbol{Kind: NIL})
 			}, nil
 	}
 }

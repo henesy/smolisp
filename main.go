@@ -23,6 +23,7 @@ const (
 	Begin                  // »(«foo a b)
 	End                    // (foo a b»)«
 	Value                  // (let »a« 2)
+	Dummy				   // Fake root node for recursion
 	NIL                    // Sentinel values are bad
 )
 
@@ -42,10 +43,12 @@ var (
 	prompt  = "» "
 	symbols map[string]Symbol
 	ast     *Tree
+	chatty	bool
 )
 
 // Small, toy, lisp-like
 func main() {
+	flag.BoolVar(&chatty, "D", false, "enable verbose debug output")
 	flag.Parse()
 
 	reader := bufio.NewReader(os.Stdin)
@@ -84,19 +87,27 @@ repl:
 			continue repl
 		}
 
-		fmt.Println("TOKENS =", tokens)
+		if chatty {
+			fmt.Println("TOKENS =", tokens)
+		}
 
 		/* Parsing */
 		ts := NewTokenScanner(tokens)
 
 		ast, err := parse(ts)
 
-		if err != nil || ast == nil {
-			fmt.Println("err: could not parse -", err)
+		if err != nil || ast == nil || ast.Kind == NIL {
+			if err != nil {
+				fmt.Println("err: parsing failed -", err)
+			} else {
+				fmt.Println("err: parsing failed - invalid expression\nexpected: (procedure args...)")
+			}
 			continue repl
 		}
 
-		fmt.Println("AST root =", *ast)
+		if chatty {
+			fmt.Println("AST root =", *ast)
+		}
 
 		/* Evaluate */
 

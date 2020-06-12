@@ -15,7 +15,9 @@ EOF exits the repl.
 	$ ./smolisp 
 	» (+ 2 3)
 	5
-	» 
+	» (+ (+ 3 (+ 2 3)) (+ 4 5))
+	17
+	»
 
 ## Specification
 
