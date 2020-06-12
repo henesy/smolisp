@@ -26,6 +26,41 @@ The `+` node fans in 3→1 by consuming its children as arguments as well as its
 
 The `2` node fans in, incidentally 1→1 as it consumes only itself and returns itself as a single-node tree.
 
+-------
+
+Building the tree is as so:
+
+	nil
+
+
+	nil
+	 |
+	nil
+
+
+	nil
+	 |
+	 +
+
+
+	nil
+	 |
+	 +
+   /
+  2
+
+
+	nil
+	 |
+	 +
+   /   \
+  2		3
+
+
+	+
+   / \
+  2	  3
+
 */
 
 const dummyName = "dummy root"
