@@ -28,6 +28,8 @@ The `2` node fans in, incidentally 1→1 as it consumes only itself and returns 
 
 */
 
+const dummyName = "dummy root"
+
 // The AST
 type Tree struct {
 	Symbol
@@ -37,7 +39,7 @@ type Tree struct {
 
 
 // Get number of nodes in a tree
-func (t Tree) Length() int {
+func (t Tree) Size() int {
 	if t.Symbol.Kind == NIL {
 		return 0
 	}
@@ -45,7 +47,7 @@ func (t Tree) Length() int {
 	count := 1
 	for _, child := range t.Children {
 		if child != nil {
-			count += child.Length()
+			count += child.Size()
 		}
 	}
 
@@ -54,42 +56,100 @@ func (t Tree) Length() int {
 
 // Parse a list of tokens into an AST
 func parse(ts *TokenScanner) (*Tree, error) {
-	token := ts.next()
 	var tree *Tree
+	
+	tree, _ = InitTree(Symbol{Dummy, dummyName})
+	
+	for ts.hasNext() {
+		token := ts.next()
 
-	fmt.Println("» parsing token =", token)
+		if chatty {
+			fmt.Println("» parsing token =", token)
+		}
 
-	switch token.Kind {
-	case Begin:
-		// Beginning of an expression
-		token = ts.next()
-
-	case End:
-		// Closing of an expression
-		token = ts.next()
-		return tree, nil
+		ingest(ts, tree, token)
 	}
-
-	symbol, err := token2symbol(token)
-	if err != nil {
-		return nil, errors.New(fmt.Sprint("token→symbol failed - ", err))
+	
+	if len(tree.Children) <= 0 {
+		return nil, errors.New("no expression provided (tree's size is 0)")
 	}
-
-	switch symbol.Kind {
-	case Procedure:
-		// Only thing not a leaf
-		;
-
-	default:
-		// Leaf
-		return NewTree(symbol)
-	}
-
+	
+	// Remove the dummy head
+	tree = tree.Children[0]
+	
 	return tree, nil
 }
 
-// Create a new, single-node tree
-func NewTree(symbol Symbol) (*Tree, error) {
+// Ingest a token into the tree
+func ingest(ts *TokenScanner, tree *Tree, token Token) error { 
+	if chatty {
+		fmt.Println("»» ingesting tree size =", tree.Size())
+		fmt.Println("»» ingesting token =", token)
+	}
+	
+	switch token.Kind {
+	case Begin:
+		// Shift down into the next child and forward a token
+		child := NewTree()
+		tree.Children = append(tree.Children, child)
+		ingest(ts, child, ts.next())
+		
+	case End:
+		// Propagate back up
+		return nil
+	
+	case Procedure:
+		// Take advantage of begin percolating down the tree, take over current node
+		symbol, err := token2symbol(token)
+		if err != nil {
+			return err
+		}
+		
+		tree.Symbol = symbol
+		tree.Eval, err = getHandler(symbol)
+		if err != nil {
+			return err
+		}
+		
+		// Ingest our children now
+		loop:
+		for {
+			token := ts.next()
+		
+			switch token.Kind {
+			case End:
+				break loop
+				
+			default:
+				ingest(ts, tree, token)
+			}
+		}
+		
+	case Integral:
+		// Insert ourselves as a child
+		symbol, err := token2symbol(token)
+		if err != nil {
+			return errors.New(fmt.Sprint("token→symbol failed - ", err))
+		}
+		
+		child, err := InitTree(symbol)
+		if err != nil {
+			return err
+		}
+
+		tree.Children = append(tree.Children, child)
+	}
+	
+	return nil
+}
+
+// Create a new tree containing nothing
+func NewTree() (*Tree) {
+	return &Tree{Symbol{NIL, "NewTree holder"}, make([]*Tree, 0, maxChildren), nil}
+}
+
+// Create a new tree from a Token
+func InitTree(symbol Symbol) (*Tree, error) {
 	handler, err := getHandler(symbol)
 	if err != nil {
 		return nil, err
@@ -125,17 +185,17 @@ func getHandler(symbol Symbol) (func(*Tree)(*Tree, error), error) {
 					return nil, errors.New(fmt.Sprint("procedure evaluation failed to consume children - ", err))
 				}
 
-				return NewTree(result)
+				return InitTree(result)
 			}, nil
 
 	case Integral:
 		return func(tree *Tree) (*Tree, error) {
-				return NewTree(symbol)
+				return InitTree(symbol)
 			}, nil
 
 	default:
 		return func(tree *Tree) (*Tree, error) {
-				return NewTree(Symbol{Kind: NIL})
+				return InitTree(Symbol{Kind: NIL})
 			}, nil
 	}
 }
