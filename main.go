@@ -23,31 +23,32 @@ const (
 	Begin                  // »(«foo a b)
 	End                    // (foo a b»)«
 	Value                  // (let »a« 2)
-	Dummy				   // Fake root node for recursion
+	Dummy				   // Fake node to be taken over later
 	NIL                    // Sentinel values are bad
 )
 
 // Represents a lexed token
 type Token struct {
-	Kind
-	name string
+	Kind           // Type of a Token
+	name string    // String representation of the Token
 }
 
 // Represents a known symbol
 type Symbol struct {
-	Kind
-	Contents interface{} // Assertion determined by .Type
+	Kind                   // Type of a Symbol
+	Contents interface{} // Type assertion determined by Kind
 }
 
 var (
-	prompt  = "» "
-	symbols map[string]Symbol
-	ast     *Tree
-	chatty	bool
+	prompt	string             // Prompt in repl
+	symbols map[string]Symbol  // Known symbols
+	ast     *Tree              // AST used for evaluation - TODO - move into REPL and discard after use
+	chatty	bool               // Verbose debugging output
 )
 
 // Small, toy, lisp-like
 func main() {
+    flag.StringVar(&prompt, "p", "» ", "prompt to show in repl")
 	flag.BoolVar(&chatty, "D", false, "enable verbose debug output")
 	flag.Parse()
 
@@ -80,6 +81,7 @@ repl:
 		text = text[:len(text)-1]
 
 		/* Tokenizing */
+		
 		tokens, err := tokenize(text)
 
 		if err != nil {
@@ -92,6 +94,7 @@ repl:
 		}
 
 		/* Parsing */
+		
 		ts := NewTokenScanner(tokens)
 
 		ast, err := parse(ts)

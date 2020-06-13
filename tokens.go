@@ -64,7 +64,7 @@ func token2symbol(token Token) (Symbol, error) {
 		symbol.Kind = token.Kind
 
 		// Determine what the value of the symbol is
-		value, err := findvalue(token)
+		value, err := findValue(token)
 
 		if err != nil {
 			return symbol, err
@@ -76,12 +76,13 @@ func token2symbol(token Token) (Symbol, error) {
 	return symbol, nil
 }
 
-/* For scanning across tokens */
+// For scanning across tokens
 type TokenScanner struct {
 	tokens []Token
 	i      int
 }
 
+// Create a new token scanner from a slice of tokens
 func NewTokenScanner(tokens []Token) *TokenScanner {
 	return &TokenScanner{
 		tokens: tokens,
@@ -110,7 +111,7 @@ func (ts *TokenScanner) next() Token {
 	return ts.tokens[ts.i]
 }
 
-// Get the last token read, no shifting is done
+// Get the previous token read, no shifting is done
 func (ts *TokenScanner) previous() Token {
 	if ts.i <= 0 {
 		return ts.tokens[0]
@@ -119,7 +120,7 @@ func (ts *TokenScanner) previous() Token {
 	return ts.tokens[ts.i-1]
 }
 
-// Shift back 1 token and return it
+// Shift back 1 token and return said token
 func (ts *TokenScanner) rewind() Token {
 	if ts.i <= 0 {
 		return ts.tokens[0]
@@ -131,7 +132,7 @@ func (ts *TokenScanner) rewind() Token {
 }
 
 // Look up and build value of a given token
-func findvalue(token Token) (interface{}, error) {
+func findValue(token Token) (interface{}, error) {
 	// TODO - more types
 	switch token.Kind {
 	case Integral:
