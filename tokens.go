@@ -95,7 +95,7 @@ func (ts *TokenScanner) hasNext() bool {
 	if ts.i >= len(ts.tokens) {
 		return false
 	}
-	
+
 	return true
 }
 

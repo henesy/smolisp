@@ -13,7 +13,7 @@ func (s Symbol) String() string {
 	case Floating:
 		return fmt.Sprint(s.Contents.(float64))
 	case Procedure:
-		return fmt.Sprintf("procedure: ", s.Contents.(func (symbols ...Symbol) (Symbol, error)))
+		return fmt.Sprint("procedure: ", s.Contents.(func(symbols ...Symbol) (Symbol, error)))
 	case Begin:
 		return "( (should never happen)"
 	case End:
