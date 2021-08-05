@@ -77,6 +77,9 @@ func token2symbol(token Token) (Symbol, error) {
 	} else {
 		;
 	}
+	if chatty {
+		fmt.Println("» returning ", symbol.Kind, symbol.Contents)
+	}
 
 	return symbol, nil
 }
@@ -140,10 +143,18 @@ func (ts *TokenScanner) rewind() Token {
 func findValue(token Token) (interface{}, error) {
 	// TODO - more types
 	switch token.Kind {
-	case Integral:
-		n, err := strconv.Atoi(token.name)
+	case Floating:
+		f, err := strconv.ParseFloat(token.name, 64)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf(`could not convert to number - %v`, err))
+			return nil, errors.New(fmt.Sprintf(`could not convert to float → "%v"`, err))
+		}
+
+		return f, nil
+
+	case Integral:
+		n, err := strconv.ParseInt(token.name, 10, 64)
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf(`could not convert to number → "%v"`, err))
 		}
 
 		return n, nil

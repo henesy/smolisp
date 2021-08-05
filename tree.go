@@ -194,7 +194,7 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 		// Insert ourselves as a child of the current node, we are but a value
 		fallthrough
 	case Value:
-		// Look ourselves up to see if we know the symbol
+		// TODO - Look ourselves up to see if we know the symbol
 		return insertChild()
 
 
@@ -251,6 +251,9 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 			return InitTree(result)
 		}, nil
 
+
+	case Floating:
+		fallthrough
 	case Integral:
 		return func(tree *Tree) (*Tree, error) {
 			return InitTree(symbol)
