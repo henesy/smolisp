@@ -31,7 +31,10 @@ func tokenize(text string) ([]Token, error) {
 		case word == ")":
 			token.Kind = End
 
-		// TODO - case out Floating and negatives
+		case word[0] >= '0' && word[0] <= '9' && strings.Contains(word, "."):
+			token.Kind = Floating
+
+		// TODO - case out negatives
 		case word[0] >= '0' && word[0] <= '9':
 			token.Kind = Integral
 
@@ -68,7 +71,6 @@ func token2symbol(token Token) (Symbol, error) {
 
 		// Determine what the value of the symbol is
 		value, err := findValue(token)
-
 		if err != nil {
 			return symbol, err
 		}

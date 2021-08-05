@@ -102,7 +102,10 @@ func parse(ts *TokenScanner) (*Tree, error) {
 			fmt.Println("» parsing token =", token)
 		}
 
-		ingest(ts, tree, token)
+		err := ingest(ts, tree, token)
+		if err != nil {
+			return nil, errors.New(fmt.Sprint("ingest in parse failed → ", err))
+		}
 	}
 
 	if len(tree.Children) <= 0 {
@@ -145,7 +148,10 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 		tree.Children = append(tree.Children, child)
 
 		// Recurse
-		ingest(ts, child, ts.next())
+		err := ingest(ts, child, ts.next())
+		if err != nil {
+			return errors.New(fmt.Sprint("recursive ingest failed → ", err))
+		}
 
 	case End:
 		// Propagate back up
@@ -183,7 +189,10 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 
 			default:
 				// Recurse
-				ingest(ts, tree, token)
+				err := ingest(ts, tree, token)
+				if err != nil {
+					return errors.New(fmt.Sprint("ingest in procedure children failed → ", err))
+				}
 			}
 		}
 
@@ -252,6 +261,7 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 		}, nil
 
 
+	// Values!
 	case Floating:
 		fallthrough
 	case Integral:
@@ -259,6 +269,7 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 			return InitTree(symbol)
 		}, nil
 
+	// We don't know what it is
 	default:
 		return func(tree *Tree) (*Tree, error) {
 			return InitTree(Symbol{Kind: NIL})
