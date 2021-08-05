@@ -58,6 +58,9 @@ func token2symbol(token Token) (Symbol, error) {
 	var symbol Symbol
 
 	// Check if this is a known symbol
+	if chatty {
+		fmt.Print("» Symbolizing \"" + token.name + "\"\n")
+	}
 	symbol, ok := symbols[token.name]
 	if !ok {
 		// Unknown symbol, so we build it
@@ -71,6 +74,8 @@ func token2symbol(token Token) (Symbol, error) {
 		}
 
 		symbol.Contents = value
+	} else {
+		;
 	}
 
 	return symbol, nil

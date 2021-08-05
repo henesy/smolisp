@@ -122,6 +122,22 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 		fmt.Println("»» ingesting token =", token)
 	}
 
+	// Inserts as a child into the tree (for values)
+	insertChild := func() error {
+		symbol, err := token2symbol(token)
+		if err != nil {
+			return errors.New(fmt.Sprint("token2symbol failed → ", err))
+		}
+
+		child, err := InitTree(symbol)
+		if err != nil {
+			return err
+		}
+
+		tree.Children = append(tree.Children, child)
+		return nil
+	}
+
 	switch token.Kind {
 	case Begin:
 		// Shift down into the next child of the current node
@@ -135,8 +151,9 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 		// Propagate back up
 		return nil
 
+
 	case Procedure:
-		// Take advantage of Begin ( percolating down the tree as a dummy
+		// Take advantage of 'Begin (' percolating down the tree as a dummy
 		symbol, err := token2symbol(token)
 		if err != nil {
 			return err
@@ -160,7 +177,7 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 			case NIL:
 				break loop
 
-			// Break out when we get matching End )
+			// Break out when we get matching 'End )'
 			case End:
 				break loop
 
@@ -170,19 +187,19 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 			}
 		}
 
+
+	case Floating:
+		fallthrough
 	case Integral:
 		// Insert ourselves as a child of the current node, we are but a value
-		symbol, err := token2symbol(token)
-		if err != nil {
-			return errors.New(fmt.Sprint("token→symbol failed - ", err))
-		}
+		fallthrough
+	case Value:
+		// Look ourselves up to see if we know the symbol
+		return insertChild()
 
-		child, err := InitTree(symbol)
-		if err != nil {
-			return err
-		}
 
-		tree.Children = append(tree.Children, child)
+
+	/* end type switch */
 	}
 
 	return nil
@@ -217,7 +234,7 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 				// Reduce the child tree to one result node
 				childTree, err := child.Eval(child)
 				if err != nil {
-					return nil, errors.New(fmt.Sprint("child eval failed - ", err))
+					return nil, errors.New(fmt.Sprint("child eval failed → ", err))
 				}
 
 				symbol := childTree.Symbol
@@ -228,7 +245,7 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 			result, err := operation(childSyms...)
 
 			if err != nil {
-				return nil, errors.New(fmt.Sprint("procedure evaluation failed to consume children - ", err))
+				return nil, errors.New(fmt.Sprint("procedure evaluation failed to consume children → ", err))
 			}
 
 			return InitTree(result)

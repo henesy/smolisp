@@ -101,9 +101,9 @@ repl:
 
 		if err != nil || ast == nil || ast.Kind == NIL {
 			if err != nil {
-				fmt.Println("err: parsing failed -", err)
+				fmt.Println("err: parsing failed →", err)
 			} else {
-				fmt.Println("err: parsing failed - invalid expression\nexpected: (procedure args...)")
+				fmt.Println("err: parsing failed → invalid expression; expected: (procedure args...)")
 			}
 			continue repl
 		}
@@ -117,7 +117,7 @@ repl:
 		final, err := ast.Eval(ast)
 
 		if err != nil {
-			fmt.Println("err: could not eval the AST -", err)
+			fmt.Println("err: could not eval the AST →", err)
 			continue repl
 		}
 

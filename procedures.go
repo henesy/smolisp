@@ -15,7 +15,7 @@ func procAdd(symbols ...Symbol) (Symbol, error) {
 		return Symbol{Integral, symbols[0].Contents.(int) + symbols[1].Contents.(int)}, nil
 	}
 
-	return Symbol{}, errors.New("arguments must be numeric types {Integral, }")
+	return Symbol{}, errors.New(`arguments must match and be numeric type ∈ {Integral, Floating}; got type "` + symbols[0].Kind.String() + `" and "` + symbols[1].Kind.String() + `"`)
 }
 
 // (- a b)
@@ -28,5 +28,5 @@ func procSub(symbols ...Symbol) (Symbol, error) {
 		return Symbol{Integral, symbols[0].Contents.(int) - symbols[1].Contents.(int)}, nil
 	}
 
-	return Symbol{}, errors.New("arguments must be numeric types {Integral, }")
+	return Symbol{}, errors.New(`arguments must match and be numeric type ∈ {Integral, Floating}; got type "` + symbols[0].Kind.String() + `" and "` + symbols[1].Kind.String() + `"`)
 }
