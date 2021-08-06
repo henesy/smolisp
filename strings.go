@@ -9,7 +9,7 @@ import (
 func (s Symbol) String() string {
 	switch s.Kind {
 	case Integral:
-		return fmt.Sprint(s.Contents.(int))
+		return fmt.Sprint(s.Contents.(int64))
 	case Floating:
 		return fmt.Sprint(s.Contents.(float64))
 	case Procedure:

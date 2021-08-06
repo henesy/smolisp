@@ -12,11 +12,15 @@ EOF exits the repl.
 
 ## Examples
 
-	$ ./smolisp 
-	» (+ 2 3)
-	5
-	» (+ (+ 3 (+ 2 3)) (+ 4 5))
-	17
+	$ ./smolisp
+	» (+ 2.14 3.2)
+	5.34
+	» (- 5.34 π)
+	2.1984073464102067
+	» (/ 4 4)
+	1
+	» (* 2 billion)
+	2000000000
 	»
 
 ## Specification
@@ -29,6 +33,13 @@ The implemented procedures:
 
 	+
 	-
+	*
+	/
+
+The implemented types:
+
+	Integral
+	Floating
 
 The implemented keywords:
 

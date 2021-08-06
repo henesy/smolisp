@@ -57,8 +57,10 @@ func main() {
 	symbols = map[string]Symbol{
 		"+":       Symbol{Procedure, procAdd},
 		"-":       Symbol{Procedure, procSub},
+		"*":       Symbol{Procedure, procMult},
+		"/":       Symbol{Procedure, procDiv},
 		"π":       Symbol{Floating, math.Pi},
-		"billion": Symbol{Integral, 1_000_000_000},
+		"billion": Symbol{Integral, int64(1_000_000_000)},
 	}
 
 	// Main loop
