@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -104,12 +103,12 @@ func parse(ts *TokenScanner) (*Tree, error) {
 
 		err := ingest(ts, tree, token)
 		if err != nil {
-			return nil, errors.New(fmt.Sprint("ingest in parse failed → ", err))
+			return nil, e("ingest in parse failed → ", err)
 		}
 	}
 
 	if len(tree.Children) <= 0 {
-		return nil, errors.New("no complete expression provided (empty AST)")
+		return nil, e("no complete expression provided (empty AST)")
 	}
 
 	// Remove the dummy head
@@ -129,7 +128,7 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 	insertChild := func() error {
 		symbol, err := token2symbol(token)
 		if err != nil {
-			return errors.New(fmt.Sprint("token2symbol failed → ", err))
+			return e("token2symbol failed → ", err)
 		}
 
 		child, err := InitTree(symbol)
@@ -150,7 +149,7 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 		// Recurse
 		err := ingest(ts, child, ts.next())
 		if err != nil {
-			return errors.New(fmt.Sprint("recursive ingest failed → ", err))
+			return e("recursive ingest failed → ", err)
 		}
 
 	case End:
@@ -191,7 +190,7 @@ func ingest(ts *TokenScanner, tree *Tree, token Token) error {
 				// Recurse
 				err := ingest(ts, tree, token)
 				if err != nil {
-					return errors.New(fmt.Sprint("ingest in procedure children failed → ", err))
+					return e("ingest in procedure children failed → ", err)
 				}
 			}
 		}
@@ -243,7 +242,7 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 				// Reduce the child tree to one result node
 				childTree, err := child.Eval(child)
 				if err != nil {
-					return nil, errors.New(fmt.Sprint("child eval failed → ", err))
+					return nil, e("child eval failed → ", err)
 				}
 
 				symbol := childTree.Symbol
@@ -254,7 +253,7 @@ func getHandler(symbol Symbol) (func(*Tree) (*Tree, error), error) {
 			result, err := operation(childSyms...)
 
 			if err != nil {
-				return nil, errors.New(fmt.Sprint("procedure evaluation failed to consume children → ", err))
+				return nil, e("procedure evaluation failed to consume children → ", err)
 			}
 
 			return InitTree(result)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,7 +39,7 @@ func tokenize(text string) ([]Token, error) {
 
 		default:
 			if i == 0 {
-				return nil, errors.New(`first rune must be "(", got "` + word + `"`)
+				return nil, e(`first rune must be "(", got "` + word + `"`)
 			}
 
 			if tokens[i-1].Kind == Begin {
@@ -148,7 +147,7 @@ func findValue(token Token) (interface{}, error) {
 	case Floating:
 		f, err := strconv.ParseFloat(token.name, 64)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf(`could not convert to float → "%v"`, err))
+			return nil, e(`could not convert to float → "` + err.Error() + `"`)
 		}
 
 		return f, nil
@@ -156,7 +155,7 @@ func findValue(token Token) (interface{}, error) {
 	case Integral:
 		n, err := strconv.ParseInt(token.name, 10, 64)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf(`could not convert to number → "%v"`, err))
+			return nil, e(`could not convert to number → "` + err.Error() + `"`)
 		}
 
 		return n, nil
@@ -169,11 +168,11 @@ func findValue(token Token) (interface{}, error) {
 		case "-":
 			return symbols["-"].Contents, nil
 		default:
-			return nil, errors.New(fmt.Sprintf(`unknown procedure "%v"`, token.name))
+			return nil, e(`unknown procedure "` + token.name + `"`)
 		}
 
 	default:
-		return nil, errors.New(fmt.Sprintf(`unknown type, cannot determine value of "%v"`, token.Kind))
+		return nil, e(`unknown type, cannot determine value of "` + token.Kind.String() + `"`)
 	}
 
 	// Unreachable
