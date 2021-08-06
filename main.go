@@ -63,9 +63,19 @@ func main() {
 		"billion": Symbol{Integral, int64(1_000_000_000)},
 	}
 
+	// Line number
+	ln := uint64(0)
+	// Line number error
+	le := func(ln uint64, v ...interface{}) {
+		// TODO - file name and rune # (in tokens → embed token in symbol?)
+		fmt.Printf("err line %d ⇒ ", ln)
+		fmt.Println(v...)
+	}
+
 	// Main loop
 repl:
 	for {
+		ln++
 		fmt.Print(prompt)
 
 		// Just read a line, TODO - make by-rune reading later
@@ -87,7 +97,7 @@ repl:
 		tokens, err := tokenize(text)
 
 		if err != nil {
-			fmt.Println("err: tokenizing failed -", err)
+			le(ln, "err: tokenizing failed →", err)
 			continue repl
 		}
 
@@ -103,15 +113,15 @@ repl:
 
 		if err != nil || ast == nil || ast.Kind == NIL {
 			if err != nil {
-				fmt.Println("err: parsing failed →", err)
+				le(ln, "err: parsing failed →", err)
 			} else {
-				fmt.Println("err: parsing failed → invalid expression; expected: (procedure args...)")
+				le(ln, "err: parsing failed → invalid expression; expected: (procedure args...)")
 			}
 			continue repl
 		}
 
 		if chatty {
-			fmt.Println("AST root =", *ast)
+			fmt.Println(ln, "AST root =", *ast)
 		}
 
 		/* Evaluate */
@@ -119,7 +129,7 @@ repl:
 		final, err := ast.Eval(ast)
 
 		if err != nil {
-			fmt.Println("err: could not eval the AST →", err)
+			le(ln, "err: could not eval the AST →", err)
 			continue repl
 		}
 
